@@ -1254,7 +1254,8 @@
 
     <!--  Strings used in the activity launched by android.settings.SHOW_WORK_POLICY_INFO -->
     <string name="work_policy_info_name">TestDPC Work Policy Info</string>
-    <string name="work_policy_info_description">This is the work policy info for TestDPC."
-    </string>
+    <string name="work_policy_info_description">This is the work policy info for TestDPC."</string>
+
+    <string name="sud_next_button_label">Next</string>
 
 </resources>

@@ -15,7 +15,7 @@
     limitations under the License.
 -->
 
-<resources>
+<resources xmlns:ns1="http://schemas.android.com/apk/res-auto">
     <style name="AppTheme" parent="android:Theme.Material.Light.DarkActionBar">
         <item name="android:windowActionBar">true</item>
         <item name="android:windowNoTitle">false</item>
@@ -102,5 +102,29 @@
         <item name="android:textSize">@dimen/selection_detailed_title_size</item>
         <item name="android:textAllCaps">true</item>
         <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <style name="SudGlifButton.Primary" parent="Widget.AppCompat.Button.Colored">
+        <!-- This style can be applied to a button either as a "style" in XML, or as a theme in
+             ContextThemeWrapper. These self-referencing attributes make sure this is applied as
+             both to the button. -->
+        <item name="android:buttonStyle">@style/SudGlifButton.Primary</item>
+        <item name="android:theme">@style/SudGlifButton.Primary</item>
+        <item name="buttonStyle">@style/SudGlifButton.Primary</item>
+
+        <!-- Values used in styles -->
+        <item name="android:fontFamily" ns1:targetApi="jelly_bean">?attr/sudButtonFontFamily</item>
+        <item name="android:paddingLeft">@dimen/sud_glif_button_padding</item>
+        <item name="android:paddingRight">@dimen/sud_glif_button_padding</item>
+        <item name="android:textAllCaps" ns1:targetApi="ice_cream_sandwich">?attr/sudButtonAllCaps</item>
+        <item name="textAllCaps">?attr/sudButtonAllCaps</item>
+        <item name="android:stateListAnimator">@null</item>
+
+        <!-- Values used in themes -->
+        <item name="android:buttonCornerRadius" ns1:ignore="NewApi">?attr/sudButtonCornerRadius</item>
+    </style>
+
+    <style name="SudGlifButtonBar.Stackable" parent="SudGlifButtonBar">
+        <item name="android:gravity">center</item>
     </style>
 </resources>
