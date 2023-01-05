@@ -251,16 +251,14 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
         if (resultCode != Activity.RESULT_OK) {
             return;
         }
-        RestrictionEntry newRestrictionEntry;
+        final RestrictionEntry updatedRestrictionEntry = mEditingRestrictionEntry;
 
         if (requestCode == RESULT_CODE_EDIT_DIALOG) {
-            int type = result.getIntExtra(KeyValuePairDialogFragment.RESULT_TYPE, 0);
-            String key = result.getStringExtra(KeyValuePairDialogFragment.RESULT_KEY);
-            newRestrictionEntry = new RestrictionEntry(getRestrictionTypeFromDialogType(type), key);
-            updateRestrictionEntryFromResultIntent(newRestrictionEntry, result);
+            updateRestrictionEntryFromResultIntent(updatedRestrictionEntry, result);
             mAppRestrictionsArrayAdapter.remove(mEditingRestrictionEntry);
+
             mEditingRestrictionEntry = null;
-            mAppRestrictionsArrayAdapter.add(newRestrictionEntry);
+            mAppRestrictionsArrayAdapter.add(updatedRestrictionEntry);
         } else if (requestCode == ACTION_EXPORT_BATCH_FILE) {
             final Uri selectedFile = result.getData();
             final Gson gson = new GsonBuilder()
