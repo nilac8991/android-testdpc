@@ -221,7 +221,7 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
         int[] supportType = (Util.SDK_INT < VERSION_CODES.M) ? SUPPORTED_TYPES_PRE_M : SUPPORTED_TYPES;
         KeyValuePairDialogFragment dialogFragment =
                 KeyValuePairDialogFragment.newInstance(
-                        type, true, key, restrictionEntry.getDescription() != null ? null : "", value, supportType, getCurrentAppName());
+                        type, true, key, restrictionEntry.getDescription() != null ? restrictionEntry.getDescription() : "", value, supportType, getCurrentAppName());
         dialogFragment.setTargetFragment(this, RESULT_CODE_EDIT_DIALOG);
         dialogFragment.show(getFragmentManager(), "dialog");
     }
