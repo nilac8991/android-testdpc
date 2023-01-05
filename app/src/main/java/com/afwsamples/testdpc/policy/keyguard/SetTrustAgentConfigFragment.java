@@ -173,6 +173,14 @@ public class SetTrustAgentConfigFragment extends ManageResolveInfoFragment
     protected void loadDefault() {
     }
 
+    @Override
+    protected void importBatchConfigFile() {
+    }
+
+    @Override
+    protected void exportBatchConfigFile() {
+    }
+
     private void setTrustAgentConfiguration() {
         ComponentName componentName = getComponentName(mResolveInfo);
         mDevicePolicyManager.setTrustAgentConfiguration(getAdmin(), componentName, mBundle);

@@ -189,6 +189,14 @@ public class DelegationFragment extends ManageAppFragment {
   @Override
   protected void loadDefault() {}
 
+  @Override
+  protected void importBatchConfigFile() {
+  }
+
+  @Override
+  protected void exportBatchConfigFile() {
+  }
+
   /** Simple wrapper to encapsulate the state of a delegation scope. */
   static class DelegationScope {
     final String scope;

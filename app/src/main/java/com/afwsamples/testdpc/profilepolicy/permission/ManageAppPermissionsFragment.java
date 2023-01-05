@@ -130,6 +130,14 @@ public class ManageAppPermissionsFragment extends ManageAppFragment {
   protected void loadDefault() {}
 
   @Override
+  protected void importBatchConfigFile() {
+  }
+
+  @Override
+  protected void exportBatchConfigFile() {
+  }
+
+  @Override
   protected BaseAdapter createListAdapter() {
     return new AppPermissionsArrayAdapter(getActivity(), 0, mAppPermissions, mAdminComponent);
   }

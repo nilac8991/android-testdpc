@@ -49,6 +49,14 @@ public class ManageAffiliationIdsFragment extends BaseStringItemsFragment {
     mDevicePolicyManagerGateway = new DevicePolicyManagerGatewayImpl(getActivity());
   }
 
+  @Override
+  protected void importBatchConfigFile() {
+  }
+
+  @Override
+  protected void exportBatchConfigFile() {
+  }
+
   @TargetApi(VERSION_CODES.O)
   @Override
   protected Collection<String> loadItems() {

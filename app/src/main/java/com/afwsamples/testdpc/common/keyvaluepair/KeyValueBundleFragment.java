@@ -152,6 +152,14 @@ public class KeyValueBundleFragment extends ManageAppFragment
     protected void loadDefault() {
     }
 
+    @Override
+    protected void importBatchConfigFile() {
+    }
+
+    @Override
+    protected void exportBatchConfigFile() {
+    }
+
     private void showEditDialog(final String key) {
         mEditingKey = key;
         int type = DialogType.BOOL_TYPE;

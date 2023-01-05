@@ -53,6 +53,14 @@ public class ManageKeepUninstalledPackagesFragment extends BaseStringItemsFragme
     mAdminComponent = DeviceAdminReceiver.getComponentName(getActivity());
   }
 
+  @Override
+  protected void importBatchConfigFile() {
+  }
+
+  @Override
+  protected void exportBatchConfigFile() {
+  }
+
   @TargetApi(VERSION_CODES.P)
   @Override
   protected Collection<String> loadItems() {

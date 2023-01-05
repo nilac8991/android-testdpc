@@ -615,6 +615,8 @@
     <string name="define_bundle">Define bundle</string>
     <string name="define_bundle_array">Define bundle array</string>
     <string name="load_manifest_restrictions">Load manifest restrictions</string>
+    <string name="load_batch_file_restrictions">Import Managed Configurations File</string>
+    <string name="save_batch_file_restrictions">Export Managed Configurations</string>
     <string name="set_app_restrictions_success">Successfully set app restrictions for %s</string>
     <string name="app_restrictions_info">%1$s - %2$s</string>
     <string name="plus">+</string>

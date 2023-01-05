@@ -18,6 +18,7 @@ package com.afwsamples.testdpc.profilepolicy.apprestrictions;
 
 import static com.afwsamples.testdpc.common.keyvaluepair.KeyValuePairDialogFragment.RESULT_VALUE;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.admin.DevicePolicyManager;
@@ -27,6 +28,7 @@ import android.content.Intent;
 import android.content.RestrictionEntry;
 import android.content.RestrictionsManager;
 import android.content.pm.ApplicationInfo;
+import android.net.Uri;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -44,7 +46,20 @@ import com.afwsamples.testdpc.common.ManageAppFragment;
 import com.afwsamples.testdpc.common.RestrictionManagerCompat;
 import com.afwsamples.testdpc.common.Util;
 import com.afwsamples.testdpc.common.keyvaluepair.KeyValuePairDialogFragment;
+import com.afwsamples.testdpc.models.RestrictionBatchEntry;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -56,6 +71,10 @@ import java.util.Set;
  */
 public class ManagedConfigurationsFragment extends ManageAppFragment
         implements EditDeleteArrayAdapter.OnEditButtonClickListener<RestrictionEntry> {
+
+    private final static int ACTION_EXPORT_BATCH_FILE = 3341;
+    private final static int ACTION_IMPORT_BATCH_FILE = 3342;
+
     private List<RestrictionEntry> mRestrictionEntries = new ArrayList<>();
     private List<RestrictionEntry> mLastRestrictionEntries;
     private DevicePolicyManager mDevicePolicyManager;
@@ -226,22 +245,111 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
         }
     }
 
+    @SuppressLint("NewApi")
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent result) {
         if (resultCode != Activity.RESULT_OK) {
             return;
         }
         RestrictionEntry newRestrictionEntry;
-        switch (requestCode) {
-            case RESULT_CODE_EDIT_DIALOG:
-                int type = result.getIntExtra(KeyValuePairDialogFragment.RESULT_TYPE, 0);
-                String key = result.getStringExtra(KeyValuePairDialogFragment.RESULT_KEY);
-                newRestrictionEntry = new RestrictionEntry(getRestrictionTypeFromDialogType(type), key);
-                updateRestrictionEntryFromResultIntent(newRestrictionEntry, result);
-                mAppRestrictionsArrayAdapter.remove(mEditingRestrictionEntry);
-                mEditingRestrictionEntry = null;
-                mAppRestrictionsArrayAdapter.add(newRestrictionEntry);
-                break;
+
+        if (requestCode == RESULT_CODE_EDIT_DIALOG) {
+            int type = result.getIntExtra(KeyValuePairDialogFragment.RESULT_TYPE, 0);
+            String key = result.getStringExtra(KeyValuePairDialogFragment.RESULT_KEY);
+            newRestrictionEntry = new RestrictionEntry(getRestrictionTypeFromDialogType(type), key);
+            updateRestrictionEntryFromResultIntent(newRestrictionEntry, result);
+            mAppRestrictionsArrayAdapter.remove(mEditingRestrictionEntry);
+            mEditingRestrictionEntry = null;
+            mAppRestrictionsArrayAdapter.add(newRestrictionEntry);
+        } else if (requestCode == ACTION_EXPORT_BATCH_FILE) {
+            final Uri selectedFile = result.getData();
+            final Gson gson = new GsonBuilder()
+                    .enableComplexMapKeySerialization()
+                    .setPrettyPrinting()
+                    .create();
+
+            Toast.makeText(getContext(),
+                    "Exporting Managed Configurations for " + getCurrentAppName(),
+                    Toast.LENGTH_LONG).show();
+
+            try {
+                final OutputStream fos = getContext().getContentResolver().openOutputStream(selectedFile);
+                final BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos, StandardCharsets.UTF_8));
+                final List<RestrictionBatchEntry> restrictionEntries = new ArrayList<>();
+
+                for (RestrictionEntry mRestrictionEntry : mRestrictionEntries) {
+                    final RestrictionBatchEntry entry = new RestrictionBatchEntry();
+                    entry.setType(mRestrictionEntry.getType());
+                    entry.setKey(mRestrictionEntry.getKey());
+                    entry.setTitle(mRestrictionEntry.getTitle());
+                    entry.setDescription(mRestrictionEntry.getDescription());
+                    entry.setChoiceEntries(mRestrictionEntry.getChoiceEntries());
+                    entry.setChoiceValues(mRestrictionEntry.getChoiceValues());
+                    entry.setCurrentValue(mRestrictionEntry.getSelectedString());
+                    entry.setCurrentValues(mRestrictionEntry.getAllSelectedStrings());
+
+                    restrictionEntries.add(entry);
+                }
+                gson.toJson(restrictionEntries, bw);
+
+                bw.flush();
+                bw.close();
+                fos.flush();
+                fos.close();
+
+                Toast.makeText(getContext(),
+                        "Export successfully completed",
+                        Toast.LENGTH_LONG).show();
+            } catch (IOException exception) {
+                exception.printStackTrace();
+            }
+        } else if (requestCode == ACTION_IMPORT_BATCH_FILE) {
+            //Clean first the old entries
+            mAppRestrictionsArrayAdapter.clear();
+            mLastRestrictionEntries.clear();
+            mRestrictionEntries.clear();
+
+            final Uri selectedFile = result.getData();
+            final Type type = new TypeToken<List<RestrictionBatchEntry>>() {
+            }.getType();
+            final Gson gson = new GsonBuilder()
+                    .enableComplexMapKeySerialization()
+                    .setPrettyPrinting()
+                    .create();
+
+            Toast.makeText(getContext(),
+                    "Importing Managed Configurations for " + getCurrentAppName(),
+                    Toast.LENGTH_LONG).show();
+
+            try {
+                final InputStream fis = getContext().getContentResolver().openInputStream(selectedFile);
+                final BufferedReader br = new BufferedReader(new InputStreamReader(fis, StandardCharsets.UTF_8));
+                List<RestrictionEntry> restrictionEntries = new ArrayList<>();
+
+                List<RestrictionBatchEntry> restrictionBatchEntries = gson.fromJson(br, type);
+                for (RestrictionBatchEntry restrictionBatchEntry : restrictionBatchEntries) {
+                    final RestrictionEntry entry = new RestrictionEntry(restrictionBatchEntry.getType(), restrictionBatchEntry.getKey());
+                    entry.setTitle(restrictionBatchEntry.getTitle());
+                    entry.setDescription(restrictionBatchEntry.getDescription());
+                    entry.setChoiceEntries(restrictionBatchEntry.getChoiceEntries());
+                    entry.setChoiceValues(restrictionBatchEntry.getChoiceValues());
+                    entry.setSelectedString(restrictionBatchEntry.getCurrentValue());
+                    entry.setAllSelectedStrings(restrictionBatchEntry.getCurrentValues());
+
+                    restrictionEntries.add(entry);
+                }
+                convertTypeChoiceAndNullToString(restrictionEntries);
+                loadAppRestrictionsList(restrictionEntries.toArray(new RestrictionEntry[0]));
+
+                br.close();
+                fis.close();
+
+                Toast.makeText(getContext(),
+                        "Import successfully completed",
+                        Toast.LENGTH_LONG).show();
+            } catch (IOException exception) {
+                exception.printStackTrace();
+            }
         }
     }
 
@@ -310,8 +418,16 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
     public View onCreateView(
             LayoutInflater layoutInflater, ViewGroup container, Bundle savedInstanceState) {
         View view = super.onCreateView(layoutInflater, container, savedInstanceState);
+
         View loadDefaultButton = view.findViewById(R.id.load_default_button);
         loadDefaultButton.setVisibility(View.VISIBLE);
+
+        View openBatchFileButton = view.findViewById(R.id.open_batch_file_button);
+        openBatchFileButton.setVisibility(View.VISIBLE);
+
+        View saveBatchFileButton = view.findViewById(R.id.save_batch_file_button);
+        saveBatchFileButton.setVisibility(View.VISIBLE);
+
         return view;
     }
 
@@ -326,9 +442,13 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
     protected void onSpinnerItemSelected(ApplicationInfo appInfo) {
         String pkgName = appInfo.packageName;
         if (!TextUtils.isEmpty(pkgName)) {
-            Bundle bundle = mDevicePolicyManager.getApplicationRestrictions(mAdminComponent, pkgName);
-            loadAppRestrictionsList(convertBundleToRestrictions(bundle));
             mLastRestrictionEntries = new ArrayList<>(mRestrictionEntries);
+            mAppRestrictionsArrayAdapter.clear();
+            mRestrictionEntries.clear();
+
+            loadManifestAppRestrictions(pkgName);
+//            Bundle bundle = mDevicePolicyManager.getApplicationRestrictions(mAdminComponent, pkgName);
+//            loadAppRestrictionsList(convertBundleToRestrictions(bundle));
         }
     }
 
@@ -388,6 +508,24 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
     protected void loadDefault() {
         loadManifestAppRestrictions(
                 ((ApplicationInfo) mManagedAppsSpinner.getSelectedItem()).packageName);
+    }
+
+    @Override
+    protected void importBatchConfigFile() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+
+        startActivityForResult(intent, ACTION_IMPORT_BATCH_FILE);
+    }
+
+    @Override
+    protected void exportBatchConfigFile() {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        intent.putExtra(Intent.EXTRA_TITLE, getCurrentAppName() + "_managed_configs.json");
+        startActivityForResult(intent, ACTION_EXPORT_BATCH_FILE);
     }
 
     @TargetApi(VERSION_CODES.M)

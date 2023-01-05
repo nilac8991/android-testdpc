@@ -162,6 +162,14 @@ public class KeyValueBundleArrayFragment extends ManageAppFragment
     }
 
     @Override
+    protected void importBatchConfigFile() {
+    }
+
+    @Override
+    protected void exportBatchConfigFile() {
+    }
+
+    @Override
     protected BaseAdapter createListAdapter() {
         mAdapter = new BundleEditDeleteArrayAdapter(getActivity(), mBundleList, this, this);
         return mAdapter;
