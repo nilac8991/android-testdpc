@@ -419,8 +419,9 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
             LayoutInflater layoutInflater, ViewGroup container, Bundle savedInstanceState) {
         View view = super.onCreateView(layoutInflater, container, savedInstanceState);
 
+        //Not needed anymore since we're performing the action automatically from the Spinner
         View loadDefaultButton = view.findViewById(R.id.load_default_button);
-        loadDefaultButton.setVisibility(View.VISIBLE);
+        loadDefaultButton.setVisibility(View.GONE);
 
         View openBatchFileButton = view.findViewById(R.id.open_batch_file_button);
         openBatchFileButton.setVisibility(View.VISIBLE);
