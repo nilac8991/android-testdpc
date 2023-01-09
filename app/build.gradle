@@ -10,8 +10,8 @@ android {
         applicationId "com.afwsamples.testdpc"
         minSdk 26
         targetSdk 33
-        versionCode 123
-        versionName "1.23"
+        versionCode 126
+        versionName "1.26"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
