@@ -23,7 +23,7 @@ public class RestrictionBatchEntry implements Serializable {
 
     private String[] currentValues;
 
-    private RestrictionEntry[] restrictions;
+    private RestrictionBatchEntry[] restrictions;
 
     public int getType() {
         return type;
@@ -89,11 +89,37 @@ public class RestrictionBatchEntry implements Serializable {
         this.currentValues = currentValues;
     }
 
-    public RestrictionEntry[] getRestrictions() {
+    public RestrictionBatchEntry[] getRestrictions() {
         return restrictions;
     }
 
-    public void setRestrictions(RestrictionEntry[] restrictions) {
+    public void setRestrictions(RestrictionBatchEntry[] restrictions) {
         this.restrictions = restrictions;
+    }
+
+    public static RestrictionBatchEntry convertToBatchEntry(RestrictionEntry entry) {
+        final RestrictionBatchEntry batchEntry = new RestrictionBatchEntry();
+        batchEntry.setType(entry.getType());
+        batchEntry.setKey(entry.getKey());
+        batchEntry.setTitle(entry.getTitle());
+        batchEntry.setDescription(entry.getDescription());
+        batchEntry.setChoiceEntries(entry.getChoiceEntries());
+        batchEntry.setChoiceValues(entry.getChoiceValues());
+        batchEntry.setCurrentValue(entry.getSelectedString());
+        batchEntry.setCurrentValues(entry.getAllSelectedStrings());
+
+        return batchEntry;
+    }
+
+    public static RestrictionEntry convertToEntry(RestrictionBatchEntry batchEntry) {
+        final RestrictionEntry entry = new RestrictionEntry(batchEntry.getType(), batchEntry.getKey());
+        entry.setTitle(batchEntry.getTitle());
+        entry.setDescription(batchEntry.getDescription());
+        entry.setChoiceEntries(batchEntry.getChoiceEntries());
+        entry.setChoiceValues(batchEntry.getChoiceValues());
+        entry.setSelectedString(batchEntry.getCurrentValue());
+        entry.setAllSelectedStrings(batchEntry.getCurrentValues());
+
+        return entry;
     }
 }

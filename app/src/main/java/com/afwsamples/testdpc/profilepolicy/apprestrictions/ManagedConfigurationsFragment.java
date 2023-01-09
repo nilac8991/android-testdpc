@@ -276,16 +276,16 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
                 final List<RestrictionBatchEntry> restrictionEntries = new ArrayList<>();
 
                 for (RestrictionEntry mRestrictionEntry : mRestrictionEntries) {
-                    final RestrictionBatchEntry entry = new RestrictionBatchEntry();
-                    entry.setType(mRestrictionEntry.getType());
-                    entry.setKey(mRestrictionEntry.getKey());
-                    entry.setTitle(mRestrictionEntry.getTitle());
-                    entry.setDescription(mRestrictionEntry.getDescription());
-                    entry.setChoiceEntries(mRestrictionEntry.getChoiceEntries());
-                    entry.setChoiceValues(mRestrictionEntry.getChoiceValues());
-                    entry.setCurrentValue(mRestrictionEntry.getSelectedString());
-                    entry.setCurrentValues(mRestrictionEntry.getAllSelectedStrings());
+                    final RestrictionBatchEntry entry = RestrictionBatchEntry.convertToBatchEntry(mRestrictionEntry);
 
+                    final RestrictionEntry[] nestedRestrictionEntries = mRestrictionEntry.getRestrictions();
+                    if (nestedRestrictionEntries != null && nestedRestrictionEntries.length > 0) {
+                        final RestrictionBatchEntry[] nestedRestrictionBatchEntries = new RestrictionBatchEntry[nestedRestrictionEntries.length];
+                        for (int i = 0; i < nestedRestrictionEntries.length; i++) {
+                            nestedRestrictionBatchEntries[i] = RestrictionBatchEntry.convertToBatchEntry(nestedRestrictionEntries[i]);
+                        }
+                        entry.setRestrictions(nestedRestrictionBatchEntries);
+                    }
                     restrictionEntries.add(entry);
                 }
                 gson.toJson(restrictionEntries, bw);
@@ -326,13 +326,16 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
 
                 List<RestrictionBatchEntry> restrictionBatchEntries = gson.fromJson(br, type);
                 for (RestrictionBatchEntry restrictionBatchEntry : restrictionBatchEntries) {
-                    final RestrictionEntry entry = new RestrictionEntry(restrictionBatchEntry.getType(), restrictionBatchEntry.getKey());
-                    entry.setTitle(restrictionBatchEntry.getTitle());
-                    entry.setDescription(restrictionBatchEntry.getDescription());
-                    entry.setChoiceEntries(restrictionBatchEntry.getChoiceEntries());
-                    entry.setChoiceValues(restrictionBatchEntry.getChoiceValues());
-                    entry.setSelectedString(restrictionBatchEntry.getCurrentValue());
-                    entry.setAllSelectedStrings(restrictionBatchEntry.getCurrentValues());
+                    final RestrictionEntry entry = RestrictionBatchEntry.convertToEntry(restrictionBatchEntry);
+
+                    final RestrictionBatchEntry[] nestedRestrictionBatchEntries = restrictionBatchEntry.getRestrictions();
+                    if (nestedRestrictionBatchEntries != null && nestedRestrictionBatchEntries.length > 0) {
+                        final RestrictionEntry[] nestedRestrictionEntries = new RestrictionEntry[nestedRestrictionBatchEntries.length];
+                        for (int i = 0; i < nestedRestrictionBatchEntries.length; i++) {
+                            nestedRestrictionEntries[i] = RestrictionBatchEntry.convertToEntry(nestedRestrictionBatchEntries[i]);
+                        }
+                        entry.setRestrictions(nestedRestrictionEntries);
+                    }
 
                     restrictionEntries.add(entry);
                 }
