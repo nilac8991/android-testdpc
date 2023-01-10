@@ -1,5 +1,6 @@
 package com.afwsamples.testdpc.models;
 
+import android.annotation.SuppressLint;
 import android.content.RestrictionEntry;
 
 import java.io.Serializable;
@@ -24,6 +25,27 @@ public class RestrictionBatchEntry implements Serializable {
     private String[] currentValues;
 
     private RestrictionBatchEntry[] restrictions;
+
+    @SuppressLint("NewApi")
+    public RestrictionBatchEntry(RestrictionEntry entry) {
+        this.type = entry.getType();
+        this.key = entry.getKey();
+        this.title = entry.getTitle();
+        this.description = entry.getDescription();
+        this.choiceEntries = entry.getChoiceEntries();
+        this.choiceValues = entry.getChoiceValues();
+        this.currentValue = entry.getSelectedString();
+        this.currentValues = entry.getAllSelectedStrings();
+
+        if (entry.getRestrictions() != null && entry.getRestrictions().length > 0) {
+            final RestrictionBatchEntry[] restrictionBatchEntries = new RestrictionBatchEntry[entry.getRestrictions().length];
+            final RestrictionEntry[] restrictionEntries = entry.getRestrictions();
+            for (int i = 0; i < entry.getRestrictions().length; i++) {
+                restrictionBatchEntries[i] = new RestrictionBatchEntry(restrictionEntries[i]);
+            }
+            this.restrictions = restrictionBatchEntries;
+        }
+    }
 
     public int getType() {
         return type;
@@ -95,31 +117,5 @@ public class RestrictionBatchEntry implements Serializable {
 
     public void setRestrictions(RestrictionBatchEntry[] restrictions) {
         this.restrictions = restrictions;
-    }
-
-    public static RestrictionBatchEntry convertToBatchEntry(RestrictionEntry entry) {
-        final RestrictionBatchEntry batchEntry = new RestrictionBatchEntry();
-        batchEntry.setType(entry.getType());
-        batchEntry.setKey(entry.getKey());
-        batchEntry.setTitle(entry.getTitle());
-        batchEntry.setDescription(entry.getDescription());
-        batchEntry.setChoiceEntries(entry.getChoiceEntries());
-        batchEntry.setChoiceValues(entry.getChoiceValues());
-        batchEntry.setCurrentValue(entry.getSelectedString());
-        batchEntry.setCurrentValues(entry.getAllSelectedStrings());
-
-        return batchEntry;
-    }
-
-    public static RestrictionEntry convertToEntry(RestrictionBatchEntry batchEntry) {
-        final RestrictionEntry entry = new RestrictionEntry(batchEntry.getType(), batchEntry.getKey());
-        entry.setTitle(batchEntry.getTitle());
-        entry.setDescription(batchEntry.getDescription());
-        entry.setChoiceEntries(batchEntry.getChoiceEntries());
-        entry.setChoiceValues(batchEntry.getChoiceValues());
-        entry.setSelectedString(batchEntry.getCurrentValue());
-        entry.setAllSelectedStrings(batchEntry.getCurrentValues());
-
-        return entry;
     }
 }

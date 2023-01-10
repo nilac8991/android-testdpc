@@ -39,6 +39,8 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import com.afwsamples.testdpc.DeviceAdminReceiver;
 import com.afwsamples.testdpc.R;
 import com.afwsamples.testdpc.common.EditDeleteArrayAdapter;
@@ -47,6 +49,7 @@ import com.afwsamples.testdpc.common.RestrictionManagerCompat;
 import com.afwsamples.testdpc.common.Util;
 import com.afwsamples.testdpc.common.keyvaluepair.KeyValuePairDialogFragment;
 import com.afwsamples.testdpc.models.RestrictionBatchEntry;
+import com.afwsamples.testdpc.util.ManagedConfigurationsBatchUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -261,46 +264,29 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
             mAppRestrictionsArrayAdapter.add(updatedRestrictionEntry);
         } else if (requestCode == ACTION_EXPORT_BATCH_FILE) {
             final Uri selectedFile = result.getData();
-            final Gson gson = new GsonBuilder()
-                    .enableComplexMapKeySerialization()
-                    .setPrettyPrinting()
-                    .create();
 
             Toast.makeText(getContext(),
                     "Exporting Managed Configurations for " + getCurrentAppName(),
                     Toast.LENGTH_LONG).show();
 
-            try {
-                final OutputStream fos = getContext().getContentResolver().openOutputStream(selectedFile);
-                final BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos, StandardCharsets.UTF_8));
-                final List<RestrictionBatchEntry> restrictionEntries = new ArrayList<>();
-
-                for (RestrictionEntry mRestrictionEntry : mRestrictionEntries) {
-                    final RestrictionBatchEntry entry = RestrictionBatchEntry.convertToBatchEntry(mRestrictionEntry);
-
-                    final RestrictionEntry[] nestedRestrictionEntries = mRestrictionEntry.getRestrictions();
-                    if (nestedRestrictionEntries != null && nestedRestrictionEntries.length > 0) {
-                        final RestrictionBatchEntry[] nestedRestrictionBatchEntries = new RestrictionBatchEntry[nestedRestrictionEntries.length];
-                        for (int i = 0; i < nestedRestrictionEntries.length; i++) {
-                            nestedRestrictionBatchEntries[i] = RestrictionBatchEntry.convertToBatchEntry(nestedRestrictionEntries[i]);
+            ManagedConfigurationsBatchUtil.INSTANCE.exportToJsonFile(
+                    selectedFile,
+                    getContext(),
+                    mRestrictionEntries,
+                    new ManagedConfigurationsBatchUtil.ProcessStateCallBack() {
+                        @Override
+                        public void onFinished(@NonNull List<RestrictionEntry> list) {
+                            //Nothing to see here
                         }
-                        entry.setRestrictions(nestedRestrictionBatchEntries);
+
+                        @Override
+                        public void onFinished() {
+                            Toast.makeText(getContext(),
+                                    "Export successfully completed",
+                                    Toast.LENGTH_SHORT).show();
+                        }
                     }
-                    restrictionEntries.add(entry);
-                }
-                gson.toJson(restrictionEntries, bw);
-
-                bw.flush();
-                bw.close();
-                fos.flush();
-                fos.close();
-
-                Toast.makeText(getContext(),
-                        "Export successfully completed",
-                        Toast.LENGTH_LONG).show();
-            } catch (IOException exception) {
-                exception.printStackTrace();
-            }
+            );
         } else if (requestCode == ACTION_IMPORT_BATCH_FILE) {
             //Clean first the old entries
             mAppRestrictionsArrayAdapter.clear();
@@ -308,49 +294,31 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
             mRestrictionEntries.clear();
 
             final Uri selectedFile = result.getData();
-            final Type type = new TypeToken<List<RestrictionBatchEntry>>() {
-            }.getType();
-            final Gson gson = new GsonBuilder()
-                    .enableComplexMapKeySerialization()
-                    .setPrettyPrinting()
-                    .create();
 
             Toast.makeText(getContext(),
                     "Importing Managed Configurations for " + getCurrentAppName(),
                     Toast.LENGTH_LONG).show();
 
-            try {
-                final InputStream fis = getContext().getContentResolver().openInputStream(selectedFile);
-                final BufferedReader br = new BufferedReader(new InputStreamReader(fis, StandardCharsets.UTF_8));
-                List<RestrictionEntry> restrictionEntries = new ArrayList<>();
-
-                List<RestrictionBatchEntry> restrictionBatchEntries = gson.fromJson(br, type);
-                for (RestrictionBatchEntry restrictionBatchEntry : restrictionBatchEntries) {
-                    final RestrictionEntry entry = RestrictionBatchEntry.convertToEntry(restrictionBatchEntry);
-
-                    final RestrictionBatchEntry[] nestedRestrictionBatchEntries = restrictionBatchEntry.getRestrictions();
-                    if (nestedRestrictionBatchEntries != null && nestedRestrictionBatchEntries.length > 0) {
-                        final RestrictionEntry[] nestedRestrictionEntries = new RestrictionEntry[nestedRestrictionBatchEntries.length];
-                        for (int i = 0; i < nestedRestrictionBatchEntries.length; i++) {
-                            nestedRestrictionEntries[i] = RestrictionBatchEntry.convertToEntry(nestedRestrictionBatchEntries[i]);
+            ManagedConfigurationsBatchUtil.INSTANCE.importFromJsonFile(
+                    selectedFile,
+                    getContext(),
+                    new ManagedConfigurationsBatchUtil.ProcessStateCallBack() {
+                        @Override
+                        public void onFinished() {
+                            //Nothing to see here
                         }
-                        entry.setRestrictions(nestedRestrictionEntries);
+
+                        @Override
+                        public void onFinished(@NonNull List<RestrictionEntry> list) {
+                            convertTypeChoiceAndNullToString(list);
+                            loadAppRestrictionsList(list.toArray(new RestrictionEntry[0]));
+
+                            Toast.makeText(getContext(),
+                                    "Import successfully completed",
+                                    Toast.LENGTH_SHORT).show();
+                        }
                     }
-
-                    restrictionEntries.add(entry);
-                }
-                convertTypeChoiceAndNullToString(restrictionEntries);
-                loadAppRestrictionsList(restrictionEntries.toArray(new RestrictionEntry[0]));
-
-                br.close();
-                fis.close();
-
-                Toast.makeText(getContext(),
-                        "Import successfully completed",
-                        Toast.LENGTH_LONG).show();
-            } catch (IOException exception) {
-                exception.printStackTrace();
-            }
+            );
         }
     }
 
