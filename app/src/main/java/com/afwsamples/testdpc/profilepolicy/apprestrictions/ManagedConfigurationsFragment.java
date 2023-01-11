@@ -432,6 +432,11 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
         return (String) getActivity().getPackageManager().getApplicationLabel(applicationInfo);
     }
 
+    private String getCurrentPackageName() {
+        ApplicationInfo applicationInfo = (ApplicationInfo) mManagedAppsSpinner.getSelectedItem();
+        return applicationInfo.processName;
+    }
+
     private void loadManifestAppRestrictions(String pkgName) {
         if (!TextUtils.isEmpty(pkgName)) {
             List<RestrictionEntry> manifestRestrictions = null;
@@ -496,7 +501,7 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("application/json");
-        intent.putExtra(Intent.EXTRA_TITLE, getCurrentAppName() + "_managed_configs.json");
+        intent.putExtra(Intent.EXTRA_TITLE, getCurrentPackageName() + "_managed_configs.json");
         startActivityForResult(intent, ACTION_EXPORT_BATCH_FILE);
     }
 
