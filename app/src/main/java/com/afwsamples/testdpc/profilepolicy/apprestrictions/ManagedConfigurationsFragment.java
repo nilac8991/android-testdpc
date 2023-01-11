@@ -412,13 +412,15 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
     protected void onSpinnerItemSelected(ApplicationInfo appInfo) {
         String pkgName = appInfo.packageName;
         if (!TextUtils.isEmpty(pkgName)) {
-            mLastRestrictionEntries = new ArrayList<>(mRestrictionEntries);
-            mAppRestrictionsArrayAdapter.clear();
-            mRestrictionEntries.clear();
+            Bundle bundle = mDevicePolicyManager.getApplicationRestrictions(mAdminComponent, pkgName);
+            loadAppRestrictionsList(convertBundleToRestrictions(bundle));
 
-            loadManifestAppRestrictions(pkgName);
-//            Bundle bundle = mDevicePolicyManager.getApplicationRestrictions(mAdminComponent, pkgName);
-//            loadAppRestrictionsList(convertBundleToRestrictions(bundle));
+            //This means that we haven't touched this app, we need to load the default application's restrictions list
+            if (mRestrictionEntries.size() == 0) {
+                loadManifestAppRestrictions(pkgName);
+            } else {
+                mLastRestrictionEntries = new ArrayList<>(mRestrictionEntries);
+            }
         }
     }
 
