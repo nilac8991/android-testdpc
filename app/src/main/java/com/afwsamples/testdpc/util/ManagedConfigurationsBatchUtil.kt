@@ -64,6 +64,28 @@ object ManagedConfigurationsBatchUtil {
     }
 
     @SuppressLint("NewApi")
+    fun importFromJsonFile(
+        selectedFile: File,
+        context: Context,
+        processStateCallBack: ProcessStateCallBack
+    ) {
+        val restrictionEntries: MutableList<RestrictionEntry> = ArrayList()
+        val fis: FileInputStream = FileInputStream(selectedFile)
+
+        fis.use {
+            val br = BufferedReader(InputStreamReader(fis, StandardCharsets.UTF_8))
+            br.use {
+                val restrictionBatchEntries: List<RestrictionBatchEntry> = mGson.fromJson(br, type)
+                for (restrictionBatchEntry in restrictionBatchEntries) {
+                    val entry = convertToEntry(restrictionBatchEntry)
+                    restrictionEntries.add(entry)
+                }
+                processStateCallBack.onFinished(restrictionEntries)
+            }
+        }
+    }
+
+    @SuppressLint("NewApi")
     private fun convertToEntry(batchEntry: RestrictionBatchEntry): RestrictionEntry {
         val entry = RestrictionEntry(batchEntry.type, batchEntry.key).apply {
             title = batchEntry.title

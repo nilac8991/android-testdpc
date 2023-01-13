@@ -122,4 +122,16 @@ public class RestrictionManagerCompat {
             Log.w(TAG, "addBundleArrayRestrictionToBundle is called in pre-M");
         }
     }
+
+    /**
+     * TODO (b/23378519): Remove this method and add support for type choice and null.
+     */
+    public static void convertTypeChoiceAndNullToString(List<RestrictionEntry> restrictionEntries) {
+        for (RestrictionEntry entry : restrictionEntries) {
+            if (entry.getType() == RestrictionEntry.TYPE_CHOICE
+                    || entry.getType() == RestrictionEntry.TYPE_NULL) {
+                entry.setType(RestrictionEntry.TYPE_STRING);
+            }
+        }
+    }
 }
