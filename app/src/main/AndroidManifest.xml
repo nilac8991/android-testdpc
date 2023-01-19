@@ -50,14 +50,12 @@
         android:name="android.hardware.touchscreen"
         android:required="false" />
 
-    <!-- TODO(b/201271137): Add non-testOnly build config. -->
-    <!-- NOTE: android:testOnly will be stripped by build.gradle (stripTestOnlyForBuild()) -->
     <application
         android:allowBackup="true"
         android:banner="@drawable/ic_launcher"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:testOnly="true"
+        android:testOnly="${testOnly}"
         android:theme="@style/AppTheme">
 
         <activity
